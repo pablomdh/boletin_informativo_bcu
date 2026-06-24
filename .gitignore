@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Datos crudos (re-descargables via scraper)
+data/raw/**/*.xls
+data/raw/**/*.xlsx
+bcu_datos/
+# Mantener la estructura de carpetas
+!data/raw/.gitkeep
+!data/raw/administratoras_de_credito/.gitkeep
+!data/raw/bancos/.gitkeep
+!data/raw/bancos_oficiales/.gitkeep
+!data/raw/cooperativos_intermediacion_financiera/.gitkeep
+!data/raw/casas_financieras/.gitkeep
+# Datos procesados (regenerables via pipeline)
+data/processed/*.csv
+!data/processed/.gitkeep
+# Metadatos de fuente — trackeados para auditoría y dashboard
+!data/processed/ultima_actualizacion.json
+
+# Outputs (regenerables via pipeline)
+output/charts/*.png
+output/dashboards/*.html
+output/reports/*.md
+output/reports/*.txt
+!output/charts/.gitkeep
+!output/dashboards/.gitkeep
+!output/reports/.gitkeep
+# Outputs trackeados para deployment (GitHub Actions / GitHub Pages)
+!output/dashboards/dashboard_interactivo.html
+!output/reports/resumen_ejecutivo.md
+
+# Archivos XLS en raíz (legacy, mover a data/raw/)
+*.xls
+*.xlsx
+# Tasas de interés bancarias — archivo único trackeado en git (excepción después de *.xls)
+!data/raw/tasas_interes/tasas.xls
+
+# Logs
+*.log
+logs/
+
+# Contenido privado / análisis propietario (no publicar)
+private/
+
+# Secretos y configuración local
+.env
+.env.local
+config/local_settings.py
+
+# Cobertura de tests
+.coverage
+htmlcov/
+.pytest_cache/

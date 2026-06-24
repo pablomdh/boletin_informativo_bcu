@@ -1,0 +1,83 @@
+name: Actualizar datos BCU
+
+on:
+  schedule:
+    # Día 15 de cada mes a las 10:00 UTC
+    # Los boletines del BCU suelen publicarse los primeros días del mes siguiente.
+    - cron: '0 10 15 * *'
+  workflow_dispatch:
+    # Permite disparo manual desde GitHub Actions UI
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Configurar empresa foco (desde GitHub Secrets)
+        env:
+          FOCUS_COMPANY_CODE:  ${{ secrets.FOCUS_COMPANY_CODE }}
+          FOCUS_COMPANY_NAME:  ${{ secrets.FOCUS_COMPANY_NAME }}
+          FOCUS_COMPANY_SHORT: ${{ secrets.FOCUS_COMPANY_SHORT }}
+          FOCUS_COMPANY_COLOR: ${{ secrets.FOCUS_COMPANY_COLOR }}
+        run: |
+          python3 - <<'EOF'
+          import os
+          code  = os.environ.get("FOCUS_COMPANY_CODE",  "XXXX")
+          name  = os.environ.get("FOCUS_COMPANY_NAME",  "Nombre S.A.")
+          short = os.environ.get("FOCUS_COMPANY_SHORT", "NOMBRE")
+          color = os.environ.get("FOCUS_COMPANY_COLOR", "#E63946")
+          with open("config/local_settings.py", "w") as f:
+              f.write(f'FOCUS_COMPANY_CODE  = "{code}"\n')
+              f.write(f'FOCUS_COMPANY_NAME  = "{name}"\n')
+              f.write(f'FOCUS_COMPANY_SHORT = "{short}"\n')
+              f.write(f'FOCUS_COMPANY_COLOR = "{color}"\n')
+          print(f"local_settings.py generado para: {name} ({code})")
+          EOF
+
+      - name: Descargar boletines BCU (grupo981 — administradoras)
+        run: python3 -c "from src.ingestion.scraper import descargar_todos; descargar_todos()"
+
+      - name: Descargar boletines BCU (grupos bancarios 99/996/997/998)
+        run: python3 -c "from src.ingestion.scraper_bancos import descargar_todos; descargar_todos()"
+
+      - name: Ejecutar pipeline (parse + indicadores + análisis + dashboard)
+        run: python main.py --skip-dl
+
+      # Este paso solo se ejecuta si TODOS los anteriores terminaron con exit code 0.
+      # GitHub Actions falla el job en el primer step con exit != 0, por lo que
+      # `if: success()` garantiza que nunca se commitan datos de una corrida parcial.
+      - name: Commit y push outputs
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Force-add los archivos de output que el pipeline generó.
+          # Son ignorados en el .gitignore local pero se publican intencionalmente en CI.
+          git add -f data/processed/ultima_actualizacion.json
+          git add -f output/dashboards/dashboard_interactivo.html
+          git add -f output/reports/resumen_ejecutivo.md
+
+          # Solo commitea si hay cambios reales (evita commits vacíos)
+          if git diff --cached --quiet; then
+            echo "Sin cambios en los outputs — nada que commitear."
+          else
+            FECHA=$(date -u '+%Y-%m-%d')
+            git commit -m "chore: actualizar datos BCU ${FECHA} [skip ci]"
+            git push
+          fi
