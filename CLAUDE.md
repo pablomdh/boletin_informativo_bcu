@@ -63,7 +63,7 @@ informe_bcu/
 │   │   ├── anexo1_analysis.py   # Análisis por plazos (Anexo 1)
 │   │   └── anexo2_analysis.py   # Análisis por segmentos (Anexo 2)
 │   ├── reporting/               # Generación de outputs
-│   │   ├── dashboard_gen.py     # Dashboard Plotly HTML
+│   │   ├── dashboard_gen.py     # Dashboard interactivo HTML (client-side, multi-institución)
 │   │   └── resumen_md_gen.py    # Resumen ejecutivo Markdown
 │   └── agents/                  # Agentes IA (extensión futura)
 ├── data/

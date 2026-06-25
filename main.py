@@ -6,7 +6,7 @@ Pipeline:
   2. parser.py        — parsea los .xls → data/processed/serie_temporal.csv
   3. indicadores.py   — calcula ratios → data/processed/indicadores.csv + plazos.csv
   4. analysis.py      — gráficos matplotlib → output/0*.png
-  5. dashboard_gen.py — dashboard Plotly → output/dashboards/dashboard_interactivo.html
+  5. dashboard_gen.py    — dashboard interactivo → output/dashboards/dashboard_interactivo.html
   6. resumen_md_gen.py— resumen ejecutivo → output/reports/resumen_ejecutivo.md
 
 Uso:
@@ -35,9 +35,15 @@ log = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(description="Pipeline BCU Credit Analysis")
-    parser.add_argument("--skip-dl", action="store_true", help="Omitir descarga de boletines")
-    parser.add_argument("--only-parse", action="store_true", help="Solo parsear (sin análisis)")
-    parser.add_argument("--force-dl", action="store_true", help="Re-descargar aunque ya existan")
+    parser.add_argument(
+        "--skip-dl", action="store_true", help="Omitir descarga de boletines"
+    )
+    parser.add_argument(
+        "--only-parse", action="store_true", help="Solo parsear (sin análisis)"
+    )
+    parser.add_argument(
+        "--force-dl", action="store_true", help="Re-descargar aunque ya existan"
+    )
     args = parser.parse_args()
 
     # ── 1. Descarga ──────────────────────────────────────────────────────────
@@ -47,10 +53,13 @@ def main():
         log.info("=" * 55)
         try:
             from src.ingestion.scraper import descargar_todos
+
             resultados = descargar_todos(force=args.force_dl)
             total = len(resultados["ok"]) + len(resultados["skip"])
             if total == 0:
-                log.error("No se descargó ningún archivo grupo981. Verificar conectividad.")
+                log.error(
+                    "No se descargó ningún archivo grupo981. Verificar conectividad."
+                )
                 sys.exit(1)
         except Exception as exc:
             log.error("Error en descarga grupo981: %s", exc)
@@ -61,9 +70,14 @@ def main():
         log.info("=" * 55)
         try:
             from src.ingestion.scraper_bancos import descargar_todos as descargar_bancos
+
             resultados_b = descargar_bancos(force=args.force_dl)
-            log.info("Bancos — ok: %d  skip: %d  fail: %d",
-                     len(resultados_b["ok"]), len(resultados_b["skip"]), len(resultados_b["fail"]))
+            log.info(
+                "Bancos — ok: %d  skip: %d  fail: %d",
+                len(resultados_b["ok"]),
+                len(resultados_b["skip"]),
+                len(resultados_b["fail"]),
+            )
         except Exception as exc:
             log.error("Error en descarga bancos: %s", exc)
             sys.exit(1)
@@ -76,9 +90,12 @@ def main():
     log.info("=" * 55)
     try:
         from src.processing.parser import guardar, parse_todos
+
         df = parse_todos()
         if df.empty:
-            log.error("El parser no produjo datos. Verificar archivos en data/raw/administratoras_de_credito/")
+            log.error(
+                "El parser no produjo datos. Verificar archivos en data/raw/administratoras_de_credito/"
+            )
             sys.exit(1)
         csv_path = guardar(df)
         log.info("DataFrame: %d filas, %d meses", len(df), df["fecha"].nunique())
@@ -92,14 +109,23 @@ def main():
     log.info("=" * 55)
     try:
         from src.processing.parser_bancos import parsear_todos as parsear_bancos
+
         df_bancos = parsear_bancos()
         if df_bancos.empty:
-            log.warning("parser_bancos no produjo datos — verificar archivos en data/raw/")
+            log.warning(
+                "parser_bancos no produjo datos — verificar archivos en data/raw/"
+            )
         else:
             processed = BASE_DIR / "data" / "processed"
-            df_bancos.to_csv(processed / "bancos_serie_temporal.csv", index=False, encoding="utf-8")
-            log.info("Bancos: %d filas, %d meses, %d grupos",
-                     len(df_bancos), df_bancos["fecha"].nunique(), df_bancos["grupo"].nunique())
+            df_bancos.to_csv(
+                processed / "bancos_serie_temporal.csv", index=False, encoding="utf-8"
+            )
+            log.info(
+                "Bancos: %d filas, %d meses, %d grupos",
+                len(df_bancos),
+                df_bancos["fecha"].nunique(),
+                df_bancos["grupo"].nunique(),
+            )
     except Exception as exc:
         log.error("Error en parsing bancos: %s", exc)
         raise
@@ -110,6 +136,7 @@ def main():
     log.info("=" * 55)
     try:
         from src.processing.indicadores import calcular_indicadores, parse_todos_anexo1
+
         processed = BASE_DIR / "data" / "processed"
         processed.mkdir(parents=True, exist_ok=True)
         df_ind = calcular_indicadores(df)
@@ -136,7 +163,9 @@ def main():
             "ultimo_mes": df_ind["fecha"].max().strftime("%Y-%m"),
         }
         meta_path = processed / "ultima_actualizacion.json"
-        meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+        meta_path.write_text(
+            json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         log.info("Metadatos guardados: %s", meta_path)
     except Exception as exc:
         log.error("Error en indicadores: %s", exc)
@@ -152,6 +181,7 @@ def main():
     log.info("=" * 55)
     try:
         from src.analysis.analysis import analizar
+
         analizar()
     except Exception as exc:
         log.error("Error en análisis: %s", exc)
@@ -159,10 +189,11 @@ def main():
 
     # ── 5. Dashboard HTML ─────────────────────────────────────────────────────
     log.info("=" * 55)
-    log.info("PASO 5/6 — Dashboard HTML (Plotly)")
+    log.info("PASO 5/6 — Dashboard HTML (interactivo)")
     log.info("=" * 55)
     try:
         from src.reporting.dashboard_gen import generate_dashboard
+
         generate_dashboard()
     except Exception as exc:
         log.error("Error en dashboard: %s", exc)
@@ -174,6 +205,7 @@ def main():
     log.info("=" * 55)
     try:
         from src.reporting.resumen_md_gen import generate_resumen, main as resumen_main
+
         resumen_main()
     except Exception as exc:
         log.error("Error en resumen: %s", exc)
@@ -181,10 +213,22 @@ def main():
 
     log.info("=" * 55)
     log.info("Pipeline completado.")
-    log.info("  serie_temporal.csv : %s", (BASE_DIR / "data" / "processed" / "serie_temporal.csv").resolve())
-    log.info("  indicadores.csv    : %s", (BASE_DIR / "data" / "processed" / "indicadores.csv").resolve())
-    log.info("  dashboard          : %s", (BASE_DIR / "output" / "dashboards" / "dashboard_interactivo.html").resolve())
-    log.info("  resumen_ejecutivo  : %s", (BASE_DIR / "output" / "reports" / "resumen_ejecutivo.md").resolve())
+    log.info(
+        "  serie_temporal.csv : %s",
+        (BASE_DIR / "data" / "processed" / "serie_temporal.csv").resolve(),
+    )
+    log.info(
+        "  indicadores.csv    : %s",
+        (BASE_DIR / "data" / "processed" / "indicadores.csv").resolve(),
+    )
+    log.info(
+        "  dashboard          : %s",
+        (BASE_DIR / "output" / "dashboards" / "dashboard_interactivo.html").resolve(),
+    )
+    log.info(
+        "  resumen_ejecutivo  : %s",
+        (BASE_DIR / "output" / "reports" / "resumen_ejecutivo.md").resolve(),
+    )
     log.info("=" * 55)
 
 
