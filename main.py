@@ -5,9 +5,8 @@ Pipeline:
   1. scraper.py       — descarga boletines .xls del BCU → data/raw/
   2. parser.py        — parsea los .xls → data/processed/serie_temporal.csv
   3. indicadores.py   — calcula ratios → data/processed/indicadores.csv + plazos.csv
-  4. analysis.py      — gráficos matplotlib → output/0*.png
-  5. dashboard_gen.py    — dashboard interactivo → output/dashboards/dashboard_interactivo.html
-  6. resumen_md_gen.py— resumen ejecutivo → output/reports/resumen_ejecutivo.md
+  4. analysis.py      — gráficos matplotlib → output/charts/
+  5. dashboard_gen.py — dashboard interactivo → output/dashboards/dashboard.html
 
 Uso:
   python main.py              # pipeline completo
@@ -177,7 +176,7 @@ def main():
 
     # ── 4. Gráficos matplotlib ────────────────────────────────────────────────
     log.info("=" * 55)
-    log.info("PASO 4/6 — Gráficos matplotlib")
+    log.info("PASO 4/5 — Gráficos matplotlib")
     log.info("=" * 55)
     try:
         from src.analysis.analysis import analizar
@@ -189,7 +188,7 @@ def main():
 
     # ── 5. Dashboard HTML ─────────────────────────────────────────────────────
     log.info("=" * 55)
-    log.info("PASO 5/6 — Dashboard HTML (interactivo)")
+    log.info("PASO 5/5 — Dashboard HTML (interactivo)")
     log.info("=" * 55)
     try:
         from src.reporting.dashboard_gen import generate_dashboard
@@ -197,18 +196,6 @@ def main():
         generate_dashboard()
     except Exception as exc:
         log.error("Error en dashboard: %s", exc)
-        raise
-
-    # ── 6. Resumen ejecutivo MD ───────────────────────────────────────────────
-    log.info("=" * 55)
-    log.info("PASO 6/6 — Resumen ejecutivo Markdown")
-    log.info("=" * 55)
-    try:
-        from src.reporting.resumen_md_gen import generate_resumen, main as resumen_main
-
-        resumen_main()
-    except Exception as exc:
-        log.error("Error en resumen: %s", exc)
         raise
 
     log.info("=" * 55)
@@ -223,11 +210,7 @@ def main():
     )
     log.info(
         "  dashboard          : %s",
-        (BASE_DIR / "output" / "dashboards" / "dashboard_interactivo.html").resolve(),
-    )
-    log.info(
-        "  resumen_ejecutivo  : %s",
-        (BASE_DIR / "output" / "reports" / "resumen_ejecutivo.md").resolve(),
+        (BASE_DIR / "output" / "dashboards" / "dashboard.html").resolve(),
     )
     log.info("=" * 55)
 

@@ -70,8 +70,7 @@ jobs:
           # Force-add los archivos de output que el pipeline generó.
           # Son ignorados en el .gitignore local pero se publican intencionalmente en CI.
           git add -f data/processed/ultima_actualizacion.json
-          git add -f output/dashboards/dashboard_interactivo.html
-          git add -f output/reports/resumen_ejecutivo.md
+          git add -f output/dashboards/dashboard.html
 
           # Solo commitea si hay cambios reales (evita commits vacíos)
           if git diff --cached --quiet; then

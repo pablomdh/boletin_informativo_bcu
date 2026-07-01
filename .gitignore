@@ -51,10 +51,9 @@ output/reports/*.md
 output/reports/*.txt
 !output/charts/.gitkeep
 !output/dashboards/.gitkeep
-!output/reports/.gitkeep
+output/reports
 # Outputs trackeados para deployment (GitHub Actions / GitHub Pages)
-!output/dashboards/dashboard_interactivo.html
-!output/reports/resumen_ejecutivo.md
+!output/dashboards/dashboard.html
 
 # Archivos XLS en raíz (legacy, mover a data/raw/)
 *.xls

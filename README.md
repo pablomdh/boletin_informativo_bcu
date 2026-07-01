@@ -48,8 +48,7 @@ Los datos se actualizan automáticamente el día 15 de cada mes via GitHub Actio
 
 | Archivo | Descripción |
 |---------|-------------|
-| `output/dashboards/dashboard_interactivo.html` | Dashboard interactivo — market share, deterioro, ROA/ROE, ranking, plazos y calidad de cartera por segmento |
-| `output/reports/resumen_ejecutivo.md` | Resumen narrativo en Markdown |
+| `output/dashboards/dashboard.html` | Dashboard interactivo — market share, deterioro, ROA/ROE, ranking, plazos y calidad de cartera por segmento |
 
 ---
 

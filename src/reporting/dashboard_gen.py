@@ -722,7 +722,7 @@ def generate_dashboard():
         inst_all, cat_inst, cat_peers, ranking, fig_mercado, fig_tasas, meta
     )
 
-    dest = OUTPUT_DIR / "dashboard_interactivo.html"
+    dest = OUTPUT_DIR / "dashboard.html"
     dest.write_text(html, encoding="utf-8")
     log.info("Dashboard guardado: %s (%d KB)", dest, len(html.encode()) // 1024)
     return dest
